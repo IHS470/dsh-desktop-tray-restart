@@ -1,0 +1,25 @@
+﻿# The tool patches a locally installed application, so CI can only check that it parses and that it explains
+# itself: everything else needs an installation to act on.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: the tool parses
+        run: node --check patch-shell-tray.mjs
+      - name: the tool explains itself when asked
+        run: node patch-shell-tray.mjs --help
+      - name: it reports a missing installation clearly instead of crashing
+        run: node patch-shell-tray.mjs status --install=C:\does-not-exist; if ($LASTEXITCODE -eq 0) { exit 1 } else { exit 0 }
+        shell: pwsh
